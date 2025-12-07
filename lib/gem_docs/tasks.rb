@@ -12,7 +12,6 @@ module GemDocs
   # Automatically installs tasks when required from Rakefile
   def self.install
     Rake.application.in_namespace(:docs) do
-
       # Ruby code block execution
       file STAMP => ORG do
         GemDocs.ensure_saved
@@ -29,7 +28,7 @@ module GemDocs
       task :examples => STAMP
 
       desc "Export README.org → README.md (GFM)"
-      task :readme   => MD
+      task :readme => MD
     end
   end
 

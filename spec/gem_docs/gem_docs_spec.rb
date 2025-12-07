@@ -1,11 +1,11 @@
 # frozen_string_literal: true
 
-RSpec.describe Gem::Docs do
+RSpec.describe GemDocs do
   it "has a version number" do
-    expect(Gem::Docs::VERSION).not_to be nil
+    expect(GemDocs::VERSION).not_to be_nil
   end
 
   it "does something useful" do
-    expect(false).to eq(true)
+    expect(false).to be(true)
   end
 end
