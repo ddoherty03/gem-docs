@@ -33,6 +33,22 @@ module GemDocs
 
       desc "Export README.org → README.md"
       task :readme => MD
+
+      desc "Extract overview from README.org and embed in lib/<gem>.rb for ri/yard"
+      task :overview do
+        print "Embedding overview extracted from #{GemDocs::ORG} into main gem file... "
+        GemDocs::Overview.write_overview_to_lib
+        puts "OK"
+      end
+
+      desc "Generate YARD HTML documentation"
+      task :yard => [:overview] do
+        puts "Generating YARD documentation..."
+        GemDocs::Yard.generate
+      end
+
+      desc "Run all documentation tasks (examples, readme, overview, yard, ri)"
+      task :all => [:examples, :readme, :overview, :yard]
     end
   end
 end
