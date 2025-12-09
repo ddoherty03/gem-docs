@@ -14,6 +14,7 @@ PATH
   specs:
     gem_docs (0.1.0)
       rake
+      yard (~> 0.9)
 
 GEM
   remote: https://rubygems.org/
