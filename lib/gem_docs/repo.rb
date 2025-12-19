@@ -2,13 +2,14 @@
 
 module GemDocs
   class Repo
-    attr_accessor :root, :host, :user, :name
+    attr_accessor :root, :host, :user, :name, :branch
 
-    def initialize(root: nil, host: nil, user: nil, name: nil)
+    def initialize(root: nil, host: nil, user: nil, name: nil, branch: 'master')
       @root = root
       @host = host
       @user = user
       @name = name
+      @branch = branch
     end
 
     class << self
@@ -22,12 +23,58 @@ module GemDocs
 
         abort "No repository URL found in gemspec metadata" unless url
 
+        root = File.dirname(File.expand_path(path))
         meta = parse_url(url)
         name = spec.name || meta[:name]
-        new(root: File.dirname(File.expand_path(path)), host: meta[:host], user: meta[:user], name: name)
+        branch = repo_default_branch(root:)
+        new(
+          root: root,
+          host: meta[:host],
+          user: meta[:user],
+          name: name,
+          branch: branch,
+        )
       end
 
       private
+
+      def repo_default_branch(root:)
+        return "master" unless git_repo?(root:)
+
+        default_branch_from_origin ||
+          fallback_branch ||
+          "master"
+      end
+
+      def fallback_branch
+        return unless git_available?
+
+        branches = %x[git branch --list 2>/dev/null]
+                     .lines
+                     .map { |l| l.sub("*", "").strip }
+
+        return "master" if branches.include?("master")
+        return "main"   if branches.include?("main")
+
+        nil
+      end
+
+      def default_branch_from_origin
+        return unless git_available?
+
+        ref = %x[git symbolic-ref --quiet refs/remotes/origin/HEAD 2>/dev/null].strip
+        return if ref.empty?
+
+        ref.split("/").last
+      end
+
+      def git_available?
+        system("git", "--version", out: File::NULL, err: File::NULL)
+      end
+
+      def git_repo?(root: nil)
+        File.directory?(File.join(root, ".git"))
+      end
 
       # Return {host: <git_host>, user: <user_name>, name: <repo_name> } by parsing the given url
       def parse_url(url)

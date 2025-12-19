@@ -8,61 +8,105 @@ module GemDocs
 
     Badge = Struct.new(:name, :marker, :org_block, keyword_init: true)
 
-    # ---------- public API ----------
-
-    def ensure_all!
-      ensure_github_actions!
-      # ensure_rubygems_version!
-      # ensure_docs_badge!
-    end
-
-    def ensure_github_actions!
+    def ensure!
       repo = Repo.from_gemspec
-      binding.break
       workflow = discover_workflow or return false
 
-      badge = github_actions_badge(repo, workflow)
+      badge = make_badge(repo, workflow)
       ensure_badge!(badge)
     end
 
-    # ---------- badge definitions ----------
+    private
 
-    def github_actions_badge(repo, workflow)
-      Badge.new(
-        name:   "GitHub Actions",
-        marker: "actions/workflows/#{workflow}",
-        org_block: <<~ORG,
-          #+BEGIN_EXPORT markdown
-          [![CI](https://github.com/#{repo.user}/actions/workflows/#{workflow}/badge.svg)](
-          https://github.com/#{repo.user}/actions/workflows/#{workflow}
-          )
-          #+END_EXPORT
-        ORG
-      )
+    # Create a Badge struct using the given repo and workflow name.
+    def make_badge(repo, workflow)
+      if repo.host.match?(/github/i)
+        Badge.new(
+          name:   'GitHub Actions',
+          marker: '#badge',
+          org_block: <<~ORG,
+            #+BEGIN_EXPORT markdown
+            [![CI](https://github.com/#{repo.user}/actions/workflows/#{workflow}/badge.svg)](
+            https://github.com/#{repo.user}/actions/workflows/#{workflow}
+            )
+            #+END_EXPORT
+          ORG
+        )
+      elsif repo.host.match?(/gitlab/i)
+        Badge.new(
+          name:   "GitLab CI",
+          marker: "#badge gitlab",
+          org_block: <<~ORG,
+            #+BEGIN_EXPORT markdown
+            [![pipeline status](https://gitlab.com/#{repo.user}/badges/#{branch}/pipeline.svg)](
+            https://gitlab.com/#{repo.user}/-/pipelines
+            )
+            #+END_EXPORT
+          ORG
+        )
+      end
     end
 
-    # ---------- insertion logic ----------
-
+    # Write the badge block to the README unless it's already there.  Replace
+    # the #badge marker if present, otherwise add after TITLE.
     def ensure_badge!(badge)
       content = File.read(README)
+      updated =
+        if content.include?(badge.marker)
+          insert_at_marker(badge.marker, content, badge.org_block)
+        elsif content.include?(badge.org_block)
+          # Do nothing
+          return content.size
+        else
+          insert_after_header(content, badge.org_block)
+        end
 
-      return false if content.include?(badge.marker)
-
-      updated = insert_after_title(content, badge.org_block)
       File.write(README, updated)
-      true
     end
 
-    def insert_after_title(content, block)
+    # Insert the badge block after the org header lines, if any.  If there are
+    # no header lines, insert at the beginning of the file.
+    def insert_after_header(content, block)
       lines = content.lines
+      out_lines = +''
 
-      idx =
-        lines.index { |l| l.start_with?("#+TITLE:") } ||
-        lines.index { |l| l.match?(/\A\*+\s+/) } ||
-        0
+      in_header = lines.any? { |l| l.match?(/\A\s*\#\+/) }
+      block_added = false
+      lines.each do |line|
+        out_lines <<
+          if in_header && line.match?(/\A\s*\#\+/)
+            line
+          elsif in_header && !line.match?(/\A\s*\#\+/)
+            in_header = false
+            block_added = true
+            if line.match?(/\A\s*\z/)
+              line + block
+            else
+              "\n" + block + "\n" + line
+            end
+          elsif !in_header && !block_added
+            block_added = true
+            block + "\n\n" + line
+          else
+            line
+          end
+      end
+      out_lines
+    end
 
-      lines.insert(idx + 1, "\n", block, "\n")
-      lines.join
+    def insert_at_marker(marker, content, block)
+      lines = content.lines
+      out_lines = +''
+
+      lines.each do |line|
+        out_lines <<
+          if line.match?(/^#{marker}/)
+            block
+          else
+            line
+          end
+      end
+      out_lines
     end
 
     def discover_workflow
@@ -73,10 +117,9 @@ module GemDocs
         Dir.children(dir)
           .select { |f| f.match?(/\A.+\.ya?ml\z/) }
           .sort
-
       return if workflows.empty?
 
-      workflows.find { |f| f =~ /\Aci\.ya?ml\z/i } || workflows.first
+      workflows.find { |f| f =~ /\A[A-Za-z][^\.]*\.ya?ml\z/i } || workflows.first
     end
   end
 end
