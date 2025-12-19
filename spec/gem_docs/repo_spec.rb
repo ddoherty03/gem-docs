@@ -20,10 +20,10 @@ module GemDocs
 
     around do |example|
       Dir.mktmpdir do |dir|
-        @root = dir
-        Dir.chdir(@root) do
-          File.write(File.join(@root, "#{gem_name}.gemspec"), fake_spec)
-          workflows_dir = File.join(@root, ".github/workflows")
+        root = dir
+        Dir.chdir(root) do
+          File.write(File.join(root, "#{gem_name}.gemspec"), fake_spec)
+          workflows_dir = File.join(root, ".github/workflows")
           FileUtils.mkdir_p(workflows_dir)
           File.write(File.join(workflows_dir, "xxx.yml"), "name: XXX")
 
@@ -34,9 +34,13 @@ module GemDocs
 
     describe ".from_gemspec" do
       context "when only github source_code_uri is present" do
+        # NB: we have to reset the gem name here because
+        # Gem::Specification.load will load a cached version of the file from
+        # prior examples.
+        let(:gem_name) { 'fake_gemA' }
         let(:metadata) do
           <<~META
-            "source_code_uri" => "https://github.com/bwayne/fake_gem",
+            "source_code_uri" => "https://github.com/bwayne/#{gem_name}",
           META
         end
 
@@ -45,12 +49,12 @@ module GemDocs
 
           expect(repo.host).to eq("github.com")
           expect(repo.user).to eq("bwayne")
-          expect(repo.name).to eq("fake_gem")
+          expect(repo.name).to eq("fake_gemA")
         end
       end
 
       context "when only gitlab source_code_uri is present" do
-        let(:gem_name) { 'fake_gem0' }
+        let(:gem_name) { 'fake_gemB' }
         let(:metadata) do
           <<~META
             "source_code_uri" => "https://gitlab.com/bwayne/#{gem_name}",
@@ -62,14 +66,15 @@ module GemDocs
 
           expect(repo.host).to eq("gitlab.com")
           expect(repo.user).to eq("bwayne")
-          expect(repo.name).to eq("fake_gem0")
+          expect(repo.name).to eq("fake_gemB")
         end
       end
 
       context "when only homepage_uri is present" do
+        let(:gem_name) { 'fake_gemC' }
         let(:metadata) do
           <<~META
-            "homepage_uri" => "https://github.com/bwayne/fake_gem"
+            "homepage_uri" => "https://github.com/bwayne/#{gem_name}"
           META
         end
 
@@ -77,28 +82,30 @@ module GemDocs
           repo = Repo.from_gemspec
 
           expect(repo.user).to eq("bwayne")
-          expect(repo.name).to eq("fake_gem")
+          expect(repo.name).to eq("fake_gemC")
         end
       end
 
       context "when URL ends with .git" do
+        let(:gem_name) { 'fake_gemD' }
         let(:metadata) do
           <<~META
-            "source_code_uri" => "https://github.com/ded/fake_gem.git"
+            "source_code_uri" => "https://github.com/ded/#{gem_name}.git"
           META
         end
 
         it "strips the .git suffix" do
           repo = Repo.from_gemspec
 
-          expect(repo.name).to eq("fake_gem")
+          expect(repo.name).to eq("fake_gemD")
         end
       end
 
       context "when using SSH GitHub URL" do
+        let(:gem_name) { 'fake_gemE' }
         let(:metadata) do
           <<~META
-            "source_code_uri" => "https://github.com/bwayne/fake_gem.git",
+            "source_code_uri" => "https://github.com/bwayne/#{gem_name}.git",
           META
         end
 
@@ -106,15 +113,12 @@ module GemDocs
           repo = Repo.from_gemspec
 
           expect(repo.user).to eq("bwayne")
-          expect(repo.name).to eq("fake_gem")
+          expect(repo.name).to eq("fake_gemE")
         end
       end
 
       context "when no repository URL is available" do
-        # NB: we have to reset the gem name here because
-        # Gem::Specification.load will load a cached version of the file from
-        # prior examples.
-        let(:gem_name) { 'fake_gem2' }
+        let(:gem_name) { 'fake_gemF' }
         let(:metadata) { '' }
 
         it "aborts with a helpful message" do
@@ -125,10 +129,7 @@ module GemDocs
       end
 
       context "when URL is not a GitHub URL" do
-        # NB: we have to reset the gem name here because
-        # Gem::Specification.load will load a cached version of the file from
-        # prior examples.
-        let(:gem_name) { 'fake_gem3' }
+        let(:gem_name) { 'fake_gemG' }
         let(:metadata) do
           <<~META
             "source_code_uri" => "https://example.com/foo/bar"

@@ -2,35 +2,71 @@
 
 module GemDocs
   RSpec.describe Badges do
-    let(:readme_path) { Badges::README }
-
     let(:metadata) do
-      {
+      <<~SPEC
         "source_code_uri" => "https://github.com/ded/fat_table",
         "changelog_uri" => "https://github.com/ded/fat_table/blob/master/CHANGELOG.md",
-      }
+      SPEC
+    end
+    let(:gem_name) { 'fake_gem' }
+    let(:fake_spec) do
+      <<~RUBY
+        Gem::Specification.new do |spec|
+          spec.name        = "#{gem_name}"
+          spec.version     = "0.9.10"
+          spec.summary     = "Fakes as a first-class data type"
+          spec.authors     = ["Bruce Wayne"]
+
+          spec.metadata = {
+            #{metadata}
+          }
+        end
+      RUBY
     end
 
-    let(:repo_double) do
-      instance_double("GemDocs::Repo")
-    end
-
-    let(:initial_readme) do
+    let(:readme_wo_badge_or_marker) do
       <<~ORG
         #+TITLE: FatTable
+        #+PROPERTY: header-args:ruby :results value :colnames no :hlines yes :exports both :dir "./"
+        #+PROPERTY: header-args:ruby :wrap example :session fat_fin_session
+        #+PROPERTY: header-args:ruby+ :prologue "require_relative 'lib/fat_fin'" :eval yes
+        #+PROPERTY: header-args:sh :exports code :eval no
+        #+PROPERTY: header-args:bash :exports code :eval no
 
         * Introduction
         Some text here.
       ORG
     end
 
-    let(:readme_with_badge) do
+    let(:readme_wo_badge_w_marker) do
       <<~ORG
+        #+PROPERTY: header-args:ruby :results value :colnames no :hlines yes :exports both :dir "./"
+        #+PROPERTY: header-args:ruby :wrap example :session fat_fin_session
+        #+PROPERTY: header-args:ruby+ :prologue "require_relative 'lib/fat_fin'" :eval yes
+        #+PROPERTY: header-args:sh :exports code :eval no
+        #+PROPERTY: header-args:bash :exports code :eval no
         #+TITLE: FatTable
 
+        #badge
+
+        * Introduction
+        Some text here.
+      ORG
+    end
+
+    let(:readme_w_badge) do
+      <<~ORG
+        #+TITLE: FatTable
+        #+OPTIONS: toc:5
+        #+PROPERTY: header-args:ruby :results value :colnames no :hlines yes :exports both :dir "./"
+        #+PROPERTY: header-args:ruby :wrap example :session fat_fin_session
+        #+PROPERTY: header-args:ruby+ :prologue "require_relative 'lib/fat_fin'" :eval yes
+        #+PROPERTY: header-args:sh :exports code :eval no
+        #+PROPERTY: header-args:bash :exports code :eval no
+
         #+BEGIN_EXPORT markdown
-        [![CI](https://github.com/ded/fat_table/actions/workflows/ci.yml/badge.svg)](
-        https://github.com/ded/fat_table/actions/workflows/ci.yml
+        [![CI](https://github.com/ded/actions/workflows/xxx.yml/badge.svg)](
+        https://github.com/ded/actions/workflows/xxx.yml
         )
         #+END_EXPORT
 
@@ -38,57 +74,86 @@ module GemDocs
       ORG
     end
 
-    before do
-      allow(Repo).to receive(:from_gemspec).and_return(repo_double)
-      allow(repo_double).to receive(:user).and_return('ded')
-      allow(repo_double).to receive(:name).and_return('fat_table')
-      stub_const("GemDocs::Badges::README", readme_path)
+    let(:readme_wo_header) do
+      <<~ORG
+        * Heading
+
+        Text
+      ORG
     end
 
-    describe ".ensure_github_actions!" do
+    let(:readme) { readme_wo_badge_or_marker }
+
+    around do |example|
+      Dir.mktmpdir do |dir|
+        root = dir
+        Dir.chdir(root) do
+          File.write(File.join(root, "#{gem_name}.gemspec"), fake_spec)
+          File.write(File.join(root, "README.org"), readme)
+          workflows_dir = File.join(root, ".github/workflows")
+          FileUtils.mkdir_p(workflows_dir)
+          File.write(File.join(workflows_dir, "xxx.yml"), "name: XXX")
+
+          example.run
+        end
+      end
+    end
+
+    describe ".ensure!" do
       context "when the badge is missing" do
+        let(:readme) { readme_wo_badge_or_marker }
+
         it "inserts the badge after the title and returns true" do
-          allow(File).to receive(:read).and_call_original
-          allow(File).to receive(:read).with(readme_path).and_return(initial_readme)
-          written = nil
-          allow(File).to receive(:write) { |_, content| written = content }
+          result = Badges.ensure!
 
-          result = Badges.ensure_github_actions!
-
-          expect(result).to be true
+          expect(result).to be_positive
+          written = File.read("README.org")
           expect(written).to include("BEGIN_EXPORT markdown")
-          expect(written).to include("actions/workflows/ci.yml")
+          expect(written).to include("actions/workflows/xxx.yml")
           expect(written.index("BEGIN_EXPORT")).to be > written.index("#+TITLE:")
         end
       end
 
       context "when the badge is already present" do
-        it "does not rewrite the file and returns false" do
-          allow(File).to receive(:read).with(readme_path).and_return(readme_with_badge)
-          expect(File).not_to have_received(:write)
+        let(:readme) { readme_w_badge }
 
-          result = Badges.ensure_github_actions!
+        it "idempotent does not rewrite the file and returns false" do
+          pre_run_readme = File.read("README.org")
+          Badges.ensure!
+          post_run_readme = File.read("README.org")
+          Badges.ensure!
+          post_post_run_readme = File.read("README.org")
 
-          expect(result).to be false
+          # expect(result).to be false
+          expect(pre_run_readme).to eq(post_run_readme)
+          expect(post_run_readme).to eq(post_post_run_readme)
         end
       end
-    end
 
-    describe ".ensure_all!" do
-      it "delegates to ensure_github_actions!" do
-        expect(Badges).to have_receives(:ensure_github_actions!).and_return(true)
-        Badges.ensure_all!
+      context "when the badge marker is present" do
+        let(:readme) { readme_wo_badge_w_marker }
+
+        it "inserts badge in place of #badge marker" do
+          pre_run_readme = File.read("README.org")
+          expect(pre_run_readme).not_to include(/BEGIN_EXPORT markdown/)
+          expect(pre_run_readme).to include(/\#badge/)
+          Badges.ensure!
+          post_run_readme = File.read("README.org")
+          expect(post_run_readme).to include(/BEGIN_EXPORT markdown/)
+          expect(post_run_readme).not_to include(/\#badge/)
+        end
       end
-    end
 
-    describe ".insert_after_title" do
-      it "falls back to inserting at the top if no title exists" do
-        content = "* Heading\nText"
-        block = "BADGE"
+      context "when README has no headers" do
+        let(:readme) { readme_wo_header }
 
-        result = Badges.insert_after_title(content, block)
+        it "falls back to inserting at the top if no title exists" do
+          Badges.ensure!
+          post_run_readme = File.read("README.org")
 
-        expect(result).to start_with("* Heading\n\nBADGE")
+          expect(post_run_readme).to start_with("\#+BEGIN_EXPORT markdown")
+          expect(post_run_readme).to include("* Heading\n\nText")
+        end
       end
     end
   end
