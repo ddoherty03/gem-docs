@@ -36,8 +36,10 @@ require "fileutils"
 module GemDocs
   require_relative "gem_docs/version"
   require_relative "gem_docs/config"
+  require_relative "gem_docs/repo"
   require_relative "gem_docs/emacs"
   require_relative "gem_docs/overview"
   require_relative "gem_docs/yard"
+  require_relative "gem_docs/badges"
   require_relative "gem_docs/tasks"
 end

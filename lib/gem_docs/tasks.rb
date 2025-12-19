@@ -47,6 +47,17 @@ module GemDocs
         GemDocs::Yard.generate
       end
 
+      desc "Ensure GitHub Actions badge exists in README.org"
+      task :badge do
+        print "Ensuring badges are in README.org ... "
+
+        if GemDocs::Badges.ensure_all!
+          puts "added"
+        else
+          puts "already present"
+        end
+      end
+
       desc "Run all documentation tasks (examples, readme, overview, yard, ri)"
       task :all => [:examples, :readme, :overview, :yard]
     end
