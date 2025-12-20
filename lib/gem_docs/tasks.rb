@@ -28,7 +28,7 @@ module GemDocs
       task :tangle => STAMP
 
       desc "Export README.org → README.md"
-      task :export => MD
+      task :export => [:badge, MD]
 
       desc "Extract overview from README.org and embed in lib/<gem>.rb for ri/yard"
       task :overview => ORG do
