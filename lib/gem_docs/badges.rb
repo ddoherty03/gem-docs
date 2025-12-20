@@ -55,8 +55,8 @@ module GemDocs
         if content.include?(badge.marker)
           insert_at_marker(badge.marker, content, badge.org_block)
         elsif content.include?(badge.org_block)
-          # Do nothing
-          return content.size
+          # Do nothing and return nil to indicate badge present
+          return
         else
           insert_after_header(content, badge.org_block)
         end
