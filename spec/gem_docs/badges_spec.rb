@@ -108,9 +108,9 @@ module GemDocs
 
           expect(result).to be_positive
           written = File.read("README.org")
-          expect(written).to include("BEGIN_EXPORT markdown")
-          expect(written).to include("actions/workflows/xxx.yml")
-          expect(written.index("BEGIN_EXPORT")).to be > written.index("#+TITLE:")
+          expect(written).to match(GemDocs::Badge::GITHUB_BADGE_RE)
+          expect(written).to include("xxx.yml")
+          expect(written.index(GemDocs::Badge::GITHUB_BADGE_RE)).to be > written.index("#+TITLE:")
         end
       end
 
@@ -134,11 +134,11 @@ module GemDocs
 
         it "inserts badge in place of #badge marker" do
           pre_run_readme = File.read("README.org")
-          expect(pre_run_readme).not_to include(/BEGIN_EXPORT markdown/)
+          expect(pre_run_readme).not_to match(GemDocs::Badge::GITHUB_BADGE_RE)
           expect(pre_run_readme).to include(/\#badge/)
           Badge.ensure!
           post_run_readme = File.read("README.org")
-          expect(post_run_readme).to include(/BEGIN_EXPORT markdown/)
+          expect(post_run_readme).to match(GemDocs::Badge::GITHUB_BADGE_RE)
           expect(post_run_readme).not_to include(/\#badge/)
         end
       end
@@ -150,7 +150,7 @@ module GemDocs
           Badge.ensure!
           post_run_readme = File.read("README.org")
 
-          expect(post_run_readme).to start_with("#+BEGIN_EXPORT markdown")
+          expect(post_run_readme).to match(GemDocs::Badge::GITHUB_BADGE_RE)
           expect(post_run_readme).to include("* Heading\n\nText")
         end
       end
