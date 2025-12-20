@@ -5,7 +5,7 @@ module GemDocs
     extend self
 
     README = "README.org"
-    GITHUB_BADGE_RE = %r{actions/workflow.*badge.svg}
+    GITHUB_BADGE_RE = %r{actions/workflows.*badge.svg}
     GITLAB_BADGE_RE = %r{badges/.*pipeline.svg}
 
     Badge = Struct.new(:name, :marker, :org_block, keyword_init: true)
@@ -26,7 +26,9 @@ module GemDocs
           name:   'GitHub Actions',
           marker: '#badge',
           org_block: <<~ORG,
-            [[https://github.com/#{repo.user}/#{repo.name}/actions/workflows/#{workflow}][https://github.com/#{repo.user}/#{repo.name}/actions/workflows/#{workflow}/badge.svg?branch=#{repo.branch}]]
+            #+BEGIN_EXPORT markdown
+              [![CI](https://github.com/#{repo.user}/#{repo.name}/actions/workflows/#{workflow}/badge.svg)](https://github.com/#{repo.user}/#{repo.name}/actions/workflows/#{workflow})
+            #+END_EXPORT
           ORG
         )
       elsif repo.host.match?(/gitlab/i)
