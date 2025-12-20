@@ -4,10 +4,8 @@ require 'strscan'
 
 module GemDocs
   module Overview
-    extend self
-
     # @return String The overview from README per config
-    def write_overview_to_lib
+    def self.write_overview_to_lib
       gem_name = File.basename(Dir.pwd)
       target   = File.join("lib", "#{gem_name}.rb")
 
@@ -55,49 +53,53 @@ module GemDocs
       File.write(target, new_lib)
     end
 
-    # Returns a markdown/Org string containing the overview section
-    def extract(readme_path)
-      text = File.read(readme_path)
+    class << self
+      private
 
-      extract_by_markers(text) || extract_by_headings(text) || nil
-    end
+      # Returns a markdown/Org string containing the overview section
+      def extract(readme_path)
+        text = File.read(readme_path)
 
-    # ----------------------------------------------------------------------
-
-    def extract_by_markers(text)
-      start_m, end_m = GemDocs.config.overview_markers
-      return unless start_m && end_m
-      return unless text.include?(start_m) && text.include?(end_m)
-
-      inner = text[/#{Regexp.escape(start_m)}(.*?)#{Regexp.escape(end_m)}/m, 1]
-      return unless inner
-
-      inner.strip
-    end
-
-    # ----------------------------------------------------------------------
-
-    def extract_by_headings(text)
-      heads = GemDocs.config.overview_headings
-      return if heads.nil? || heads.empty?
-
-      result = ''
-      heads.each do |h|
-        if text =~ /^\*+\s+#{Regexp.escape(h)}\s*$/
-          start_idx = Regexp.last_match.begin(0)
-
-          # find next heading
-          tail = text[start_idx + 1..-1]
-          result =
-            if tail =~ /^\*+ /
-              end_idx = start_idx + Regexp.last_match.begin(0)
-              text[start_idx...end_idx].strip
-            else
-              tail.strip
-            end
-        end
+        extract_by_markers(text) || extract_by_headings(text) || nil
       end
-      result
+
+      # ----------------------------------------------------------------------
+
+      def extract_by_markers(text)
+        start_m, end_m = GemDocs.config.overview_markers
+        return unless start_m && end_m
+        return unless text.include?(start_m) && text.include?(end_m)
+
+        inner = text[/#{Regexp.escape(start_m)}(.*?)#{Regexp.escape(end_m)}/m, 1]
+        return unless inner
+
+        inner.strip
+      end
+
+      # ----------------------------------------------------------------------
+
+      def extract_by_headings(text)
+        heads = GemDocs.config.overview_headings
+        return if heads.nil? || heads.empty?
+
+        result = ''
+        heads.each do |h|
+          if text =~ /^\*+\s+#{Regexp.escape(h)}\s*$/
+            start_idx = Regexp.last_match.begin(0)
+
+            # find next heading
+            tail = text[start_idx + 1..-1]
+            result =
+              if tail =~ /^\*+ /
+                end_idx = start_idx + Regexp.last_match.begin(0)
+                text[start_idx...end_idx].strip
+              else
+                tail.strip
+              end
+          end
+        end
+        result
+      end
     end
   end
 end
