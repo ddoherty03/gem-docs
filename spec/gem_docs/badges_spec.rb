@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module GemDocs
-  RSpec.describe Badges do
+  RSpec.describe Badge do
     let(:metadata) do
       <<~SPEC
         "source_code_uri" => "https://github.com/ded/fat_table",
@@ -104,7 +104,7 @@ module GemDocs
         let(:readme) { readme_wo_badge_or_marker }
 
         it "inserts the badge after the title and returns true" do
-          result = Badges.ensure!
+          result = Badge.ensure!
 
           expect(result).to be_positive
           written = File.read("README.org")
@@ -119,9 +119,9 @@ module GemDocs
 
         it "idempotent does not rewrite the file and returns false" do
           pre_run_readme = File.read("README.org")
-          Badges.ensure!
+          Badge.ensure!
           post_run_readme = File.read("README.org")
-          Badges.ensure!
+          Badge.ensure!
           post_post_run_readme = File.read("README.org")
 
           expect(pre_run_readme).to eq(post_run_readme)
@@ -136,7 +136,7 @@ module GemDocs
           pre_run_readme = File.read("README.org")
           expect(pre_run_readme).not_to include(/BEGIN_EXPORT markdown/)
           expect(pre_run_readme).to include(/\#badge/)
-          Badges.ensure!
+          Badge.ensure!
           post_run_readme = File.read("README.org")
           expect(post_run_readme).to include(/BEGIN_EXPORT markdown/)
           expect(post_run_readme).not_to include(/\#badge/)
@@ -147,7 +147,7 @@ module GemDocs
         let(:readme) { readme_wo_header }
 
         it "falls back to inserting at the top if no title exists" do
-          Badges.ensure!
+          Badge.ensure!
           post_run_readme = File.read("README.org")
 
           expect(post_run_readme).to start_with("#+BEGIN_EXPORT markdown")

@@ -1,10 +1,12 @@
 # frozen_string_literal: true
 
 module GemDocs
-  module Badges
+  module Badge
     extend self
 
     README = "README.org"
+    GITHUB_BADGE_RE = %r{actions/workflow.*badge.svg}
+    GITLAB_BADGE_RE = %r{badges/.*pipeline.svg}
 
     Badge = Struct.new(:name, :marker, :org_block, keyword_init: true)
 
@@ -12,7 +14,7 @@ module GemDocs
       repo = Repo.from_gemspec
       workflow = discover_workflow or return false
       badge = make_badge(repo, workflow)
-      ensure_badge!(badge)
+      ensure_badge!(badge, repo)
     end
 
     private
@@ -24,9 +26,7 @@ module GemDocs
           name:   'GitHub Actions',
           marker: '#badge',
           org_block: <<~ORG,
-            #+BEGIN_EXPORT markdown
-              [![CI](https://github.com/#{repo.user}/#{repo.name}/actions/workflows/#{workflow}/badge.svg)](https://github.com/#{repo.user}/#{repo.name}/actions/workflows/#{workflow})
-            #+END_EXPORT
+            [[https://github.com/#{repo.user}/#{repo.name}/actions/workflows/#{workflow}][https://github.com/#{repo.user}/#{repo.name}/actions/workflows/#{workflow}/badge.svg?branch=#{repo.branch}]]
           ORG
         )
       elsif repo.host.match?(/gitlab/i)
@@ -46,12 +46,13 @@ module GemDocs
 
     # Write the badge block to the README unless it's already there.  Replace
     # the #badge marker if present, otherwise add after TITLE.
-    def ensure_badge!(badge)
+    def ensure_badge!(badge, repo)
       content = File.read(README)
       updated =
         if content.lines.find { |l| l.match?(/\A\s*#{Regexp.quote(badge.marker)}/) }
           insert_at_marker(badge.marker, content, badge.org_block)
-        elsif content.include?(badge.org_block)
+        elsif (repo.host.include?('github') && content.match?(GITHUB_BADGE_RE)) ||
+              (repo.host.include?('gitlab') && content.match?(GITLAB_BADGE_RE))
           # Do nothing and return nil to indicate badge present
           return
         else
@@ -77,9 +78,9 @@ module GemDocs
             in_header = false
             block_added = true
             if line.match?(/\A\s*\z/)
-              line + block
+              line + block + "\n\n"
             else
-              "\n" + block + "\n" + line
+              "\n" + block + "\n\n" + line
             end
           elsif !in_header && !block_added
             block_added = true

@@ -47,7 +47,7 @@ module GemDocs
       task :badge do
         print "Ensuring badges are in README.org ... "
 
-        if GemDocs::Badges.ensure!
+        if GemDocs::Badge.ensure!
           puts "added"
         else
           puts "already present"
