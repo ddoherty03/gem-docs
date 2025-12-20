@@ -45,7 +45,7 @@ To use this gem place the following lines in your gem's ~Rakefile~:
   GemDocs.install
 #+end_src
 
-* Usage
+* Usage of ~gem_docs~
 ** Run the Code Blocks in README.org: `rake docs:tangle`
 You can invoke ~emacsclient~ to run all the example code blocks in your
 ~README.org~ that are set for evaluation:
