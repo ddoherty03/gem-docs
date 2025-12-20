@@ -5,34 +5,30 @@ module GemDocs
 
   ORG   = "README.org"
   MD    = "README.md"
-  STAMP = ".examples-stamp"
+  STAMP = ".tangle-stamp"
 
   def self.install
     extend Rake::DSL
 
-    task :save do
-      GemDocs.ensure_saved
-    end
-
     # README.org → README.md when README.org is newer
     file MD => ORG do
       print "Exporting \"#{ORG}\" → "
-      GemDocs.export_readme
+      GemDocs::Emacs.export_readme
     end
 
     # Evaluate code blocks only when README.org changes
-    file STAMP => [:save, ORG] do
+    file STAMP => ORG do
       print "Executing code blocks in #{ORG} ... "
-      GemDocs.evaluate_examples
+      GemDocs::Emacs.tangle
       FileUtils.touch(STAMP)
     end
 
     namespace :docs do
-      desc "Evaluate Ruby examples in README.org"
-      task :examples => STAMP
+      desc "Evaluate code blocks in README.org"
+      task :tangle => STAMP
 
       desc "Export README.org → README.md"
-      task :readme => MD
+      task :export => MD
 
       desc "Extract overview from README.org and embed in lib/<gem>.rb for ri/yard"
       task :overview => ORG do
@@ -51,7 +47,7 @@ module GemDocs
       task :badge do
         print "Ensuring badges are in README.org ... "
 
-        if GemDocs::Badges.ensure_all!
+        if GemDocs::Badges.ensure!
           puts "added"
         else
           puts "already present"
@@ -59,7 +55,7 @@ module GemDocs
       end
 
       desc "Run all documentation tasks (examples, readme, overview, yard, ri)"
-      task :all => [:examples, :readme, :overview, :yard]
+      task :all => [:tangle, :export, :overview, :yard]
     end
   end
 end
