@@ -67,7 +67,7 @@ module GemDocs
         #+PROPERTY: header-args:bash :exports code :eval no
 
         #+BEGIN_EXPORT markdown
-          [![CI](https://github.com/#{repo.user}/#{repo.name}/actions/workflows/#{workflow}/badge.svg)](https://github.com/#{repo.user}/#{repo.name}/actions/workflows/#{workflow})
+          ![#{workflow}](https://github.com/#{repo.user}/actions/workflows/#{workflow}/badge.svg)
         #+END_EXPORT
 
         * Introduction
