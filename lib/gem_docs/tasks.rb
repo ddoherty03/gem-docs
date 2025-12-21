@@ -40,6 +40,16 @@ module GemDocs
         end
       end
 
+      desc "Insert #+PROPERTY headers at top of README.org for code blocks"
+      task :header do
+        print "Inserting headers ... "
+        if GemDocs::Header.write_header?
+          puts "added"
+        else
+          puts "already present"
+        end
+      end
+
       desc "Generate YARD HTML documentation"
       task :yard => [:overview] do
         puts "Generating YARD documentation ... "
@@ -58,7 +68,7 @@ module GemDocs
       end
 
       desc "Run all documentation tasks (examples, readme, overview, yard, ri)"
-      task :all => [:tangle, :export, :overview, :yard]
+      task :all => [:header, :tangle, :export, :overview, :yard]
     end
   end
 end
