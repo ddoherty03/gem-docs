@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module GemDocs
-  RSpec.describe Emacs do
+  RSpec.describe Yard do
     let(:fake_gem_lib) do
       <<~RUBY
         class Column
