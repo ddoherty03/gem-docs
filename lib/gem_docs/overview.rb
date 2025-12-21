@@ -1,22 +1,24 @@
 # frozen_string_literal: true
 
 require 'strscan'
+require 'debug'
 
 module GemDocs
   module Overview
-    # @return String The overview from README per config
-    def self.write_overview_to_lib
-      gem_name = File.basename(Dir.pwd)
-      target   = File.join("lib", "#{gem_name}.rb")
+    OVERVIEW_RE = /^\#\s*Gem Overview.*^\#[^\n]*$/m
 
-      return unless File.exist?(target)
+    # @return String The overview from README per config
+    def self.write_overview?
+      repo = Repo.from_gemspec
+      target = File.join("lib", "#{repo.name}.rb")
+
+      return false unless File.exist?(target)
 
       overview = extract(GemDocs::ORG)
-      return unless overview
+      return false unless overview
 
       old_lib = File.read(target)
-      overview_re = /^\#~{5,}.*?\#~{5,}\#/m
-      has_old_comment = old_lib.match(overview_re)
+      has_old_comment = old_lib.match(OVERVIEW_RE)
       old_comment = has_old_comment.to_s
 
       new_comment = <<~RUBY.chomp
@@ -24,7 +26,7 @@ module GemDocs
         #
         #{overview.lines.map { |l| l.match?(/\A\s*\z/) ? '#' : "# #{l.rstrip}" }.join("\n")}
       RUBY
-      return old_lib if old_comment == new_comment
+      return false if old_comment == new_comment
 
       new_lib = ''
       begin
@@ -47,10 +49,18 @@ module GemDocs
             prelims + new_comment + "\n\n" + scanner.rest
           end
       rescue
-        nil
+        false
       end
+      File.write(target, new_lib) > 0
+    end
 
-      File.write(target, new_lib)
+    def self.present?
+      repo = Repo.from_gemspec
+      target = File.join("lib", "#{repo.name}.rb")
+
+      return false unless File.exist?(target)
+
+      File.read(target).match?(OVERVIEW_RE)
     end
 
     class << self
