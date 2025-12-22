@@ -2,7 +2,7 @@
 
 module GemDocs
   RSpec.describe Repo do
-    let(:gem_name) { 'fake_gem' }
+    let(:gem_name) { 'fake_gem_' }
     let(:fake_spec) do
       <<~RUBY
         Gem::Specification.new do |spec|
@@ -37,7 +37,7 @@ module GemDocs
         # NB: we have to reset the gem name here because
         # Gem::Specification.load will load a cached version of the file from
         # prior examples.
-        let(:gem_name) { 'fake_gemA' }
+        let(:gem_name) { 'fake_gem_A' }
         let(:metadata) do
           <<~META
             "source_code_uri" => "https://github.com/bwayne/#{gem_name}",
@@ -49,12 +49,12 @@ module GemDocs
 
           expect(repo.host).to eq("github.com")
           expect(repo.user).to eq("bwayne")
-          expect(repo.name).to eq("fake_gemA")
+          expect(repo.name).to eq("fake_gem_A")
         end
       end
 
       context "when only gitlab source_code_uri is present" do
-        let(:gem_name) { 'fake_gemB' }
+        let(:gem_name) { 'fake_gem_B' }
         let(:metadata) do
           <<~META
             "source_code_uri" => "https://gitlab.com/bwayne/#{gem_name}",
@@ -66,12 +66,12 @@ module GemDocs
 
           expect(repo.host).to eq("gitlab.com")
           expect(repo.user).to eq("bwayne")
-          expect(repo.name).to eq("fake_gemB")
+          expect(repo.name).to eq("fake_gem_B")
         end
       end
 
       context "when only homepage_uri is present" do
-        let(:gem_name) { 'fake_gemC' }
+        let(:gem_name) { 'fake_gem_C' }
         let(:metadata) do
           <<~META
             "homepage_uri" => "https://github.com/bwayne/#{gem_name}"
@@ -82,12 +82,12 @@ module GemDocs
           repo = Repo.from_gemspec
 
           expect(repo.user).to eq("bwayne")
-          expect(repo.name).to eq("fake_gemC")
+          expect(repo.name).to eq("fake_gem_C")
         end
       end
 
       context "when URL ends with .git" do
-        let(:gem_name) { 'fake_gemD' }
+        let(:gem_name) { 'fake_gem_D' }
         let(:metadata) do
           <<~META
             "source_code_uri" => "https://github.com/ded/#{gem_name}.git"
@@ -97,12 +97,12 @@ module GemDocs
         it "strips the .git suffix" do
           repo = Repo.from_gemspec
 
-          expect(repo.name).to eq("fake_gemD")
+          expect(repo.name).to eq("fake_gem_D")
         end
       end
 
       context "when using SSH GitHub URL" do
-        let(:gem_name) { 'fake_gemE' }
+        let(:gem_name) { 'fake_gem_E' }
         let(:metadata) do
           <<~META
             "source_code_uri" => "https://github.com/bwayne/#{gem_name}.git",
@@ -113,12 +113,12 @@ module GemDocs
           repo = Repo.from_gemspec
 
           expect(repo.user).to eq("bwayne")
-          expect(repo.name).to eq("fake_gemE")
+          expect(repo.name).to eq("fake_gem_E")
         end
       end
 
       context "when no repository URL is available" do
-        let(:gem_name) { 'fake_gemF' }
+        let(:gem_name) { 'fake_gem_F' }
         let(:metadata) { '' }
 
         it "aborts with a helpful message" do
@@ -129,7 +129,7 @@ module GemDocs
       end
 
       context "when URL is not a GitHub URL" do
-        let(:gem_name) { 'fake_gemG' }
+        let(:gem_name) { 'fake_gem_G' }
         let(:metadata) do
           <<~META
             "source_code_uri" => "https://example.com/foo/bar"

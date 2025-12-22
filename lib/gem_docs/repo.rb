@@ -2,19 +2,21 @@
 
 module GemDocs
   class Repo
-    attr_accessor :root, :host, :user, :name, :branch
-    attr_accessor :workflow_dir, :workflow_name
+    attr_accessor :root, :host, :user, :name, :module_name
+    attr_accessor  :branch, :workflow_dir, :workflow_name
 
     def initialize(root: nil, host: nil,
                    user: nil,
                    name: nil,
+                   module_name: nil,
                    branch: 'master',
                    workflow_dir: nil,
                    workflow_name: nil
-        )
+                  )
       @root = root
       @host = host
       @user = user
+      @module_name = module_name
       @name = name
       @branch = branch
       @workflow_dir = workflow_dir
@@ -48,22 +50,23 @@ module GemDocs
                meta[:host]
         user = GemDocs.config.repo_user ||
                meta[:user]
-
+        mname = to_module(name)
         branch = GemDocs.config.repo_branch ||
                  repo_default_branch(root:)
-        wdir, wname = discover_workflow
+        wdir, wname = workflow_dir_name
         new(
           root: root,
           host: host,
           user: user,
           name: name,
+          module_name: mname,
           branch: branch,
           workflow_dir: wdir,
           workflow_name: wname,
         )
       end
 
-      def discover_workflow
+      def workflow_dir_name
         if GemDocs.config.repo_workflow_name && GemDocs.config.repo_workflow_dir
           workflow_file = File.join(
             GemDocs.project_root,
@@ -85,6 +88,10 @@ module GemDocs
         fname = workflows.find { |f| f =~ /\A[A-Za-z][^\.]*\.ya?ml\z/i } || workflows.first
         # File.join(dir, fname)
         [dir, fname]
+      end
+
+      def to_module(name)
+        name.split(/[-_]/).map(&:capitalize).join('')
       end
 
       private
