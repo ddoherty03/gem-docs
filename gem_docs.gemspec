@@ -9,11 +9,11 @@ Gem::Specification.new do |spec|
   spec.email = ["ded@ddoherty.net"]
   spec.summary       = "Documentation automation for Ruby gems"
   spec.description   = "Shared tasks for README.org execution, GFM export, YARD integration (future), etc."
-  spec.homepage = "https://github.com/ddoherty03/gem-docs"
+  spec.homepage = "https://github.com/ddoherty03/gem_docs"
   spec.license = "MIT"
   spec.required_ruby_version = ">= 3.2.0"
   spec.metadata["homepage_uri"] = spec.homepage
-  spec.metadata["source_code_uri"] = "https://github.com/ddoherty03/gem-docs"
+  spec.metadata["source_code_uri"] = "https://github.com/ddoherty03/gem_docs"
   spec.files = Dir["lib/**/*.rb"]
   spec.require_paths = ["lib"]
 
