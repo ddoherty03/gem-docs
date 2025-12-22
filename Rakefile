@@ -11,5 +11,8 @@ RuboCop::RakeTask.new
 
 require_relative "lib/gem_docs"
 GemDocs.install
+GemDocs.configure do |c|
+  c.overview_headings = ["Overview", "Usage"]
+end
 
 task default: %i[spec rubocop]
