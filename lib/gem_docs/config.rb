@@ -25,6 +25,7 @@ module GemDocs
         HEADER
       @repo_host = nil
       @repo_name = nil
+      @repo_user = nil
       @repo_branch = nil
       @repo_workflow_dir = ".github/workflows"
       @repo_workflow_name = nil
