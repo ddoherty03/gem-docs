@@ -10,7 +10,7 @@ module GemDocs
 
       prelim, body = extract_prelim_body
       new_org = prelim.join.strip + org_headers.strip + "\n\n" + body.join
-      File.write(ORG, new_org) > 0
+      File.write(README_ORG, new_org) > 0
     end
 
     def self.present?
@@ -26,7 +26,7 @@ module GemDocs
         prelim = []
         body = []
         in_prelim = true
-        File.read(ORG).lines.each do |line|
+        File.read(README_ORG).lines.each do |line|
           if in_prelim && line.match?(/^\s*[^#\n]+\s*$/)
             in_prelim = false
             body << line

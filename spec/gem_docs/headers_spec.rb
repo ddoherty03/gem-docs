@@ -118,10 +118,10 @@ module GemDocs
         let(:readme) { readme_w_ruby_head }
 
         it "does not change the README file" do
-          pre_org = File.read(ORG)
+          pre_org = File.read(README_ORG)
           expect(Header).to be_present
           expect(Header.write_header?).to be false
-          post_org = File.read(ORG)
+          post_org = File.read(README_ORG)
           expect(pre_org).to eq(post_org)
           expect(Header).to be_present
         end

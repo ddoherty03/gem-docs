@@ -2,7 +2,6 @@
 
 module GemDocs
   module Badge
-    README = "README.org"
     GITHUB_BADGE_RE = %r{actions/workflows.*badge.svg}
     GITLAB_BADGE_RE = %r{badges/.*pipeline.svg}
 
@@ -39,7 +38,7 @@ module GemDocs
       # Write the badge block to the README unless it's already there.  Replace
       # the #badge marker if present, otherwise add after TITLE.
       def ensure_badge!(badge, repo)
-        content = File.read(README)
+        content = File.read(README_ORG)
         updated =
           if content.lines.find { |l| l.match?(/\A\s*#{Regexp.quote(badge.marker)}/) }
             insert_at_marker(badge.marker, content, badge.org_block)
@@ -51,7 +50,7 @@ module GemDocs
             insert_after_header(content, badge.org_block)
           end
 
-        File.write(README, updated)
+        File.write(README_ORG, updated)
       end
 
       # Insert the badge block after the org header lines, if any.  If there are

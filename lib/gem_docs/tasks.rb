@@ -3,22 +3,20 @@
 module GemDocs
   extend Rake::DSL
 
-  ORG   = "README.org"
-  MD    = "README.md"
   STAMP = ".tangle-stamp"
 
   def self.install
     extend Rake::DSL
 
     # README.org → README.md when README.org is newer
-    file MD => ORG do
-      print "Exporting \"#{ORG}\" → "
+    file README_MD => README_ORG do
+      print "Exporting \"#{README_ORG}\" → "
       GemDocs::Emacs.export
     end
 
     # Evaluate code blocks only when README.org changes
-    file STAMP => ORG do
-      print "Executing code blocks in #{ORG} ... "
+    file STAMP => README_ORG do
+      print "Executing code blocks in #{README_ORG} ... "
       GemDocs::Emacs.tangle
       FileUtils.touch(STAMP)
     end
@@ -31,7 +29,7 @@ module GemDocs
       task :export => [:badge, MD]
 
       desc "Extract overview from README.org and embed in lib/<gem>.rb for ri/yard"
-      task :overview => ORG do
+      task :overview => README_ORG do
         print "Embedding overview extracted from #{GemDocs::ORG} into main gem file ... "
         if GemDocs::Overview.write_overview?
           puts "added"

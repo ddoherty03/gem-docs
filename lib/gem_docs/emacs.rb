@@ -6,7 +6,7 @@ module GemDocs
       # ensure_saved
       expr = <<~ELISP
         (save-window-excursion
-          (with-current-buffer (find-file-noselect "#{ORG}")
+          (with-current-buffer (find-file-noselect "#{README_ORG}")
             (save-buffer)
             (require 'ob-ruby)
             (org-babel-execute-buffer)
@@ -25,7 +25,7 @@ module GemDocs
       # ensure_saved
       expr = <<~ELISP
         (save-window-excursion
-          (with-current-buffer (find-file-noselect "#{ORG}")
+          (with-current-buffer (find-file-noselect "#{README_ORG}")
             (save-buffer)
             (require 'ox-gfm)
             (org-gfm-export-to-markdown)))

@@ -129,6 +129,9 @@ module GemDocs
   require_relative "gem_docs/header"
   require_relative "gem_docs/tasks"
 
+  README_ORG = "README.org"
+  README_MD = "README.md"
+
   # Auto-detect project root (handles being run from subdirs)
   def self.project_root
     here = Dir.pwd

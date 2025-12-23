@@ -71,7 +71,7 @@ module GemDocs
       # Extract the Overview from the concatenation of all the README.org
       # top-level sections given in GemDocs.config.overview_headings.
       def extract
-        text = File.read(ORG)
+        text = File.read(README_ORG)
         heads = GemDocs.config.overview_headings
         return if heads.nil? || heads.empty?
 
