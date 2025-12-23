@@ -35,8 +35,12 @@ module GemDocs
           old_lib.sub(old_comment, new_comment)
         else
           scanner = StringScanner.new(old_lib)
-          scanner.scan_until(/^module #{repo.module_name}/)
-          scanner.pre_match + "\n" + new_comment + "\n" + scanner.matched + scanner.rest
+          if scanner.scan_until(/^module #{repo.module_name}/)
+            scanner.pre_match + "\n" + new_comment + "\n" + scanner.matched + scanner.rest
+          else
+            # No `module GemName` in the file.  Add empty one at the end
+            old_lib + "\n" + new_comment + "\nmodule #{repo.module_name}\nend"
+          end
         end
       File.write(target, new_lib) > 0
     end

@@ -31,6 +31,17 @@ module GemDocs
       LIB
     end
 
+    let(:main_lib_wo_module) do
+      <<~LIB
+        # -*- mode: ruby -*-
+        # frozen_string_literal: true
+
+        require "rake"
+        require "rake/dsl_definition"
+        require "fileutils"
+      LIB
+    end
+
     let(:main_lib_w_overview) do
       <<~LIB
         # -*- mode: ruby -*-
