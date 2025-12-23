@@ -25,9 +25,9 @@ require "fileutils"
 # to demonstrate the ~gem~ or other documents being presented.  If you do so,
 # ~github~ will render your ~README.org~ file in ~HTML~ and give you a credible
 # result.  However, ~github~ cannot handle some ~org-mode~ features, and in
-# particular, it will not render ~'#+RESULTS~ blocks showing the results of code
+# particular, it will not render `~#+RESULTS~` blocks showing the results of code
 # block execution unless you wrap the results in something like a
-# ~#+begin_example~ block and manually delete the ~'#+RESULTS~ markers.
+# `#+begin_example` block and manually delete the `#+RESULTS` markers.
 # Exporting to markdown eliminates that hassle.
 #
 # This gem contains ~rake~ tasks to facilitate the production of documentation
@@ -48,6 +48,99 @@ require "fileutils"
 # * Usage
 #
 # ** Add proper ~#+PROPERTY~ headers in ~README.org~: `rake docs:headers`
+# Getting emacs code blocks to render well in your ~README.org~ takes proper
+# configuration of the code block headers in Emacs.
+#
+# #+begin_src ruby :eval no
+#  rake docs:headers
+# #+end_src
+#
+# By default, the ~gem_docs~ ~rake docs:headers~ task will add the following
+# headers to the top of your ~README.org~ file.  It does nothing if any ruby
+# header args are already present, so remove them if you want these installed.
+#
+# #+begin_example
+# #+PROPERTY: header-args:ruby :results value :colnames no :hlines yes :exports both :dir "./"
+# #+PROPERTY: header-args:ruby+ :wrap example :session gem_docs_session
+# #+PROPERTY: header-args:ruby+ :prologue "$:.unshift('./lib') unless $:.first == './lib'; require '%n'"
+# #+PROPERTY: header-args:sh :exports code :eval no
+# #+PROPERTY: header-args:bash :exports code :eval no
+# #+end_example
+#
+# Here's what the ruby headers buy you:
+# - ~:results value~ :: the value of the last expression in the block is rendered
+#   as the results of code execution.  If you want the output instead for a
+#   particular block, just add the block argument ~:results output~ to the code
+#   block.
+# - ~:colnames no~ :: prevents org from processing the column headers in tables
+#   it renders.  It is better for you to control column headers, and this
+#   setting allows this.
+# - ~:hlines yes~ :: prevents org from stripping hlines from tables, which also
+#   allows you to control the insertion of hlines in tables.
+# - ~:exports both~ :: causes both your code and the results of evaluation to be
+#   exported to the ~README.md~.  Your example blocks should demonstrate the use
+#   of the gem, and the reader will want to see both the code and its results.
+# - ~:dir "./"~ :: causes each code block to execute with your gem's root
+#   directory as its current directory.
+# - ~:wrap example~ :: this wraps the result of code block evaluation in
+#   `~#+begin_example~` / `~#+end_example~` so that the results are displayed
+#   literally.
+# - ~:session gem_docs_session~ :: causes the code blocks to execute in a
+#   continuous session, so that variables set up in one code block are
+#   accessible in later code blocks.  Without this, you would have to build the
+#   code environment anew with each code block which obscures the readability of
+#   your ~README~.  The session name is set to '<gem_name>_session'
+#   automatically, where <gem_name> is the name of your gem.
+# - ~:prologue "$:.unshift('./lib') unless $:.first == './lib'; require 'gem_name'"~
+#   :: this prologue gets executed before each code block execution and ensures
+#   that the version of the gem library is you current development version;
+#   otherwise, your code blocks could be running a version from a prior
+#   installation of the gem.  The 'gem_name' in the require is set to the name
+#   of your gem automatically.
+#
+# The ~docs:headers~ task also turns off evaluation of shell code blocks since
+# these will often be such things as demonstrating the shell commands to install
+# the gem, etc.  Of course, you can override this for particular code blocks.
+#
+# Those headers are in fact what I am using in this ~README~, and here is how
+# they work:
+#
+# #+begin_src ruby
+#   result = []
+#   result << ['N', 'exp(N)']
+#   result << nil
+#   0.upto(10) do |n|
+#     result << [n/3.0, Math.exp(n/3.0)]
+#   end
+#   result
+# #+end_src
+#
+# #+RESULTS:
+# #+begin_example
+# |                  N |             exp(N) |
+# |--------------------+--------------------|
+# |                0.0 |                1.0 |
+# | 0.3333333333333333 | 1.3956124250860895 |
+# | 0.6666666666666666 | 1.9477340410546757 |
+# |                1.0 |  2.718281828459045 |
+# | 1.3333333333333333 | 3.7936678946831774 |
+# | 1.6666666666666667 |   5.29449005047003 |
+# |                2.0 |   7.38905609893065 |
+# | 2.3333333333333335 | 10.312258501325767 |
+# | 2.6666666666666665 | 14.391916095149892 |
+# |                3.0 | 20.085536923187668 |
+# | 3.3333333333333335 |  28.03162489452614 |
+# #+end_example
+#
+# I built the table in the output by returning an array of arrays, which
+# org-mode renders as a table in the output.  Notice that I added an hline to
+# the output by simply adding ~nil~ to the outer array where I wanted the hline
+# to occur.
+#
+# Apart from all the convenient markup that ~org-mode~ allows, the ability to
+# easily demonstrate your gem's code in this way is the real killer feature of
+# writing your ~README~ in ~org-mode~ then exporting to markdown.
+#
 # ** Run the Code Blocks in README.org: `rake docs:tangle`
 # You can invoke ~emacsclient~ to run all the example code blocks in your
 # ~README.org~ that are set for evaluation:
@@ -56,15 +149,26 @@ require "fileutils"
 # ~README.org~, so your Emacs ~init~ files should start [[info:emacs#Emacs Server][the Emacs server]] in
 # order to work properly.
 #
+# I use the following snippet in my Emacs init file:
+#
+# #+begin_src emacs-lisp :eval no
+#   (require 'server)
+#   (unless (server-running-p)
+#     (message "Starting Emacs server")
+#     (server-start))
+# #+end_src
+#
+# Then, you can evaluate all the code blocks in your ~README.org~ like this:
+#
 # #+begin_src ruby :eval no
 #  rake docs:tangle
 # #+end_src
 #
 # ** Ensure that a Badge is Present in ~README.md~: `rake docs:badge`
-# It is reassuring to consumers of your gem that you gem passes its workflow
-# tests.  This task checks to see if a "badge" indicating success or failure is
-# present and, if not, inserts one at the top of the ~README.org~ such that it
-# will get exported to ~README.md~ when =rake docs:export= is run.
+# It is reassuring to consumers of your gem that your gem passes its workflow
+# tests on github.  This task checks to see if a "badge" indicating success or
+# failure is present and, if not, inserts one at the top of the ~README.org~
+# such that it will get exported to ~README.md~ when =rake docs:export= is run.
 #
 # If you want to place the badge somewhere else in you ~README.org~, place the
 # special comment ~#badge~ where you want the badge located and the task will
@@ -77,6 +181,9 @@ require "fileutils"
 # You can write the ~README~ in Emacs org-mode, using all its features
 # including the execution of code blocks, and then export to git-flavored
 # markdown.
+#
+# If your repo contains both ~README.org~ and ~README.md~, github (and gitlab)
+# will render the markdown version.
 #
 # Github renders markdown better than it renders org files, so this helps with
 # the readability of the ~README~ on github.  For example, if you write the
@@ -112,12 +219,17 @@ require "fileutils"
 # this =lib= directory is placed in the user's =LOADPATH=, a =require
 # 'gem_docs'= or =require '<gemname>'= effectively initializes the gem.
 #
-# By convention the first comment after the preliminary comments (such as =#
-# frozen-string: true=) is used by =ri= as the overview for the gem.
+# By convention the comment immediately above the 'module' definition in your
+# main library file is used by =yard= and =ri= as the overview for the gem.
 #
 # #+begin_src ruby :eval no
 #   rake docs:overview
 # #+end_src
+#
+# This extracts the "Introduction" section from ~README.org~ and makes it the
+# overview comment in the gem's main library file.  If it already exists, it
+# replaces it with any newer version of the "Introduction" section, otherwise,
+# it does not change the file.
 module GemDocs
   require_relative "gem_docs/version"
   require_relative "gem_docs/config"
