@@ -23,13 +23,13 @@ module GemDocs
 
     namespace :docs do
       desc "Evaluate code blocks in README.org"
-      task :tangle => STAMP
+      task :tangle => [:skeleton, STAMP]
 
       desc "Export README.org → README.md"
       task :export => [:badge, README_MD]
 
       desc "Extract overview from README.org and embed in lib/<gem>.rb for ri/yard"
-      task :overview => README_ORG do
+      task :overview => [:skeleton, README_ORG] do
         print "Embedding overview extracted from #{GemDocs::README_ORG} into main gem file ... "
         if GemDocs::Overview.write_overview?
           puts "added"
@@ -38,8 +38,17 @@ module GemDocs
         end
       end
 
+      desc "Create skeleton README.org if one does not exist"
+      task :skeleton do
+        if GemDocs::Skeleton.make_readme?
+          puts "README.org added"
+        else
+          puts "README.org already present"
+        end
+      end
+
       desc "Insert #+PROPERTY headers at top of README.org for code blocks"
-      task :header do
+      task :header => :skeleton do
         print "Inserting headers ... "
         if GemDocs::Header.write_header?
           puts "added"
@@ -55,7 +64,7 @@ module GemDocs
       end
 
       desc "Ensure GitHub Actions badge exists in README.org"
-      task :badge do
+      task :badge => :skeleton do
         print "Ensuring badges are in README.org ... "
 
         if GemDocs::Badge.ensure!
@@ -66,7 +75,7 @@ module GemDocs
       end
 
       desc "Run all documentation tasks (examples, readme, overview, yard, ri)"
-      task :all => [:header, :tangle, :export, :overview, :yard]
+      task :all => [:skeleton, :header, :tangle, :export, :overview, :yard]
     end
   end
 end

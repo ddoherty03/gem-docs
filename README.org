@@ -22,9 +22,9 @@ Doing so gives you access to ~org-mode~'s code blocks for writing example code
 to demonstrate the ~gem~ or other documents being presented.  If you do so,
 ~github~ will render your ~README.org~ file in ~HTML~ and give you a credible
 result.  However, ~github~ cannot handle some ~org-mode~ features, and in
-particular, it will not render `~#+RESULTS~` blocks showing the results of code
+particular, it will not render ~#+RESULTS~ blocks showing the results of code
 block execution unless you wrap the results in something like a
-`#+begin_example` block and manually delete the `#+RESULTS` markers.
+~#+begin_example~ block and manually delete the ~#+RESULTS~ markers.
 Exporting to markdown eliminates that hassle.
 
 This gem contains ~rake~ tasks to facilitate the production of documentation
@@ -41,6 +41,7 @@ It provides tasks for:
 - generating yard documents for your repo, and
 - copying the introductory contents of the README as a leading comment in your
   main gem library file so it gets picked up as an overview for ~ri~ and ~yri~
+
 
 * Installation
 ** Install the ox-gfm Emacs package
@@ -71,7 +72,16 @@ To use this gem place the following lines in your gem's ~Rakefile~:
 #+end_src
 
 * Usage
-** Add proper ~#+PROPERTY~ headers in ~README.org~: `rake docs:headers`
+** Create a skeleton README.org file
+This is a simple task that creates a bare-bones ~README.org~ file to get
+started with.  It does create the file with the name of the gem and other repo
+detains filled in.  If there is already a README.org file, it does nothing.
+
+#+begin_src ruby :eval no
+ rake docs:skeleton
+#+end_src
+
+** Add proper ~#+PROPERTY~ headers in ~README.org~: ~rake docs:headers~
 Getting emacs code blocks to render well in your ~README.org~ takes proper
 configuration of the code block headers in Emacs.
 
@@ -107,7 +117,7 @@ Here's what the ruby headers buy you:
 - ~:dir "./"~ :: causes each code block to execute with your gem's root
   directory as its current directory.
 - ~:wrap example~ :: this wraps the result of code block evaluation in
-  `~#+begin_example~` / `~#+end_example~` so that the results are displayed
+  ~#+begin_example~ / ~#+end_example~ so that the results are displayed
   literally.
 - ~:session gem_docs_session~ :: causes the code blocks to execute in a
   continuous session, so that variables set up in one code block are
@@ -165,7 +175,7 @@ Apart from all the convenient markup that ~org-mode~ allows, the ability to
 easily demonstrate your gem's code in this way is the real killer feature of
 writing your ~README~ in ~org-mode~ then exporting to markdown.
 
-** Run the Code Blocks in README.org: `rake docs:tangle`
+** Run the Code Blocks in README.org: ~rake docs:tangle~
 You can invoke ~emacsclient~ to run all the example code blocks in your
 ~README.org~ that are set for evaluation:
 
@@ -188,7 +198,7 @@ Then, you can evaluate all the code blocks in your ~README.org~ like this:
  rake docs:tangle
 #+end_src
 
-** Ensure that a Badge is Present in ~README.md~: `rake docs:badge`
+** Ensure that a Badge is Present in ~README.md~: ~rake docs:badge~
 It is reassuring to consumers of your gem that your gem passes its workflow
 tests on github.  This task checks to see if a "badge" indicating success or
 failure is present and, if not, inserts one at the top of the ~README.org~
@@ -201,7 +211,7 @@ place it there.
 If there is already a badge present, the task will not modify the ~README.org~
 file.
 
-** Export ~README.org~ to ~README.md~: `rake docs:export`
+** Export ~README.org~ to ~README.md~: ~rake docs:export~
 You can write the ~README~ in Emacs org-mode, using all its features
 including the execution of code blocks, and then export to git-flavored
 markdown.
@@ -226,7 +236,7 @@ so it doesn't get put into the ~README.md~
   rake docs:export
 #+end_src
 
-** Generate Yard Documents: `rake docs:yard`
+** Generate Yard Documents: ~rake docs:yard~
 This task generates a suitable ~.yardopts~ file if none exists and then
 generates ~yard~ documents into the gem's ~doc~ directory.  It also makes sure
 that ~yard~ knows about your ~README.md~ file so user's of your gem will be
@@ -236,7 +246,7 @@ able to get an overview of how to use your gem.
   rake docs:yard
 #+end_src
 
-** Generate an Overview Comment for the Main gem File: `rake docs:overview`
+** Generate an Overview Comment for the Main gem File: ~rake docs:overview~
 Gem's typically gather into a central library file all the require's and other
 setup needed for the gem and the file is given the same name as the gem.  For
 example, this gem uses the file =lib/gem_docs.rb= for this purpose.  Since
@@ -329,7 +339,7 @@ install`.
 
 * Contributing
 Bug reports and pull requests are welcome on GitHub at
-https://github.com/ddoherty03/gem-docs.
+https://github.com/ddoherty03/gem_docs.
 
 * License
 The gem is available as open source under the terms of the [MIT
