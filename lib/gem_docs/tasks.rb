@@ -1,10 +1,6 @@
 # frozen_string_literal: true
 
 module GemDocs
-  extend Rake::DSL
-
-  STAMP = ".tangle-stamp"
-
   def self.install
     extend Rake::DSL
 
@@ -14,16 +10,12 @@ module GemDocs
       GemDocs::Emacs.export
     end
 
-    # Evaluate code blocks only when README.org changes
-    file STAMP => README_ORG do
-      print "Executing code blocks in #{README_ORG} ... "
-      GemDocs::Emacs.tangle
-      FileUtils.touch(STAMP)
-    end
-
     namespace :docs do
       desc "Evaluate code blocks in README.org"
-      task :tangle => [:skeleton, STAMP]
+      task :tangle => [:skeleton] do
+        print "Executing code blocks in #{README_ORG} ... "
+        GemDocs::Emacs.tangle
+      end
 
       desc "Export README.org → README.md"
       task :export => [:badge, README_MD]
@@ -66,7 +58,6 @@ module GemDocs
       desc "Ensure GitHub Actions badge exists in README.org"
       task :badge => :skeleton do
         print "Ensuring badges are in README.org ... "
-
         if GemDocs::Badge.ensure!
           puts "added"
         else
