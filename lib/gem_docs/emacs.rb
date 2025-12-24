@@ -15,9 +15,7 @@ module GemDocs
             "OK"))
       ELISP
 
-      if system("emacsclient", "--quiet", "--eval", expr)
-        FileUtils.touch(STAMP)
-      else
+      unless system("emacsclient", "--quiet", "--eval", expr)
         abort "Babel execution failed"
       end
     end
