@@ -3,9 +3,10 @@
 module GemDocs
   module Emacs
     def self.tangle
-      # ensure_saved
       expr = <<~ELISP
         (save-window-excursion
+          (if (get-buffer "#{session_name}")
+            (kill-buffer "#{session_name}"))
           (with-current-buffer (find-file-noselect "#{README_ORG}")
             (save-buffer)
             (require 'ob-ruby)
@@ -22,7 +23,6 @@ module GemDocs
     end
 
     def self.export
-      # ensure_saved
       expr = <<~ELISP
         (save-window-excursion
           (with-current-buffer (find-file-noselect "#{README_ORG}")
@@ -32,6 +32,10 @@ module GemDocs
       ELISP
 
       system("emacsclient", "--quiet", "--eval", expr)
+    end
+
+    def self.session_name
+      "*#{Repo.from_gemspec.name}_session*"
     end
   end
 end

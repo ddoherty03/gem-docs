@@ -2,6 +2,21 @@
 
 module GemDocs
   RSpec.describe Emacs do
+    let(:fake_spec) do
+      <<~RUBY
+        Gem::Specification.new do |spec|
+          spec.name        = "fake_gem"
+          spec.version     = "0.9.10"
+          spec.summary     = "Fakes as a first-class data type"
+          spec.authors     = ["Bruce Wayne"]
+
+          spec.metadata = {
+            "source_code_uri" => "https://github.com/bwayne/fake_gem",
+          }
+        end
+      RUBY
+    end
+
     let(:readme) do
       <<~ORG
         #+PROPERTY: header-args:ruby :results value :colnames no :hlines yes :exports both :dir "./"
@@ -60,6 +75,7 @@ module GemDocs
       Dir.mktmpdir do |dir|
         root = dir
         Dir.chdir(root) do
+          File.write(File.join(root, "fake_gem.gemspec"), fake_spec)
           File.write(File.join(root, "README.org"), readme)
 
           example.run
