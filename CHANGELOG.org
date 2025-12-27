@@ -8,7 +8,11 @@
    number.
 
 * Version 0.3.0 [2025-12-27 Sat]
-- Added export of CHANGELOG.org to CHANGELOG.md
+- Added ruby header to run `bundle exec irb` as the code block process.  This
+  should eliminate library mis-matches in running blocks.
+- Added export of CHANGELOG.org to CHANGELOG.md;
+- Added CHANGELOG skeleton along with README; tasks are now
+  `rake docs:skeleton:readme` and `rake docs:skeleton:changelog`.
 - Added this CHANGELOG so I have an example to use in my specs.  Oh, and for
   users also.
 * Version 0.2.0 [2025-12-23 Tue]
