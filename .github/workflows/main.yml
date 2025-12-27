@@ -27,11 +27,12 @@ jobs:
         with:
           ruby-version: ${{ matrix.ruby }}
           bundler-cache: true
-      - name: Disable Bundler frozen setting
+      - name: Disable Bundler frozen setting and verify Gemfile.lock
         run: |
-          bundle config set frozen false
+          bundle config set frozen false --global
+          rm -f Gemfile.lock # Ensure completely clean lockfile state
           bundle install
       - name: Run rake tasks that don't need emacs
         run: |
-          bundle exec rspec --exclude_pattern spec/gem_docs/emacs_spec.rb
+          bundle exec rspec --exclude-pattern spec/gem_docs/emacs_spec.rb
           bundle exec rubocop
