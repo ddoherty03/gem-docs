@@ -2,11 +2,9 @@
 
 module GemDocs
   module Skeleton
-    PROPERTY_RE = /^#\+PROPERTY:\s+header-args:ruby/
-
     # @return String The overview from README per config
     def self.make_readme?
-      return false if present?
+      return false if readme_present?
 
       repo = Repo.from_gemspec
       content = <<~SKEL
@@ -47,8 +45,31 @@ module GemDocs
       File.write(README_ORG, content) > 0
     end
 
-    def self.present?
+    def self.readme_present?
       File.exist?(README_ORG)
+    end
+
+    def self.make_changelog?
+      return false if changelog_present?
+
+      content = <<~SKEL
+        * COMMENT CHANGELOG tips:
+        1. Don't dump your git change logs into this file, write them yourself.
+        2. Keep entries short and user-focused,
+        3. Use non-technical language, but do speak in the vocabulary of your gem.
+        4. Don't document changes only of interest to the programmers, just those the
+           user would find useful.
+        5. Give each heading a version number and an inactive date (C-c ! is useful here).
+
+        * Version 0.3.0 [2025-12-27 Sat]
+        - First change
+        - Second change
+      SKEL
+      File.write(CHANGELOG_ORG, content) > 0
+    end
+
+    def self.changelog_present?
+      File.exist?(CHANGELOG_ORG)
     end
   end
 end

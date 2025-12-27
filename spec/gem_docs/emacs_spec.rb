@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require 'date'
+
 module GemDocs
   RSpec.describe Emacs do
     let(:fake_spec) do
@@ -66,6 +68,25 @@ module GemDocs
         #+begin_src ruby
           FakeGem.table
         #+end_src
+      ORG
+    end
+
+    let(:changelog) do
+      <<~ORG
+        * [2025-12-27 Sat] Version 0.3.0
+        - Added export of CHANGELOG.org to CHANGELOG.md
+        - Added this CHANGELOG so I have an example to use in my specs.  Oh, and for
+          users also.
+        * [2025-12-23 Tue] Version 0.2.0
+        - Make tangle of README.org unconditional, even is it is not newer than
+          README.md.  The code examples depend on more than just the text of
+          README.org, they especially depend on changes to the gem's lib code, so
+          running unconditionally is usually what is wanted.
+        - Before docs:tangle, kill the session buffer for ruby code blocks so each run
+          is independent of prior runs and the current version of the gem lib gets
+          loaded.
+        * [2025-12-23 Fri] Version 0.1.2
+        - Initial release
       ORG
     end
 
@@ -137,6 +158,7 @@ module GemDocs
         Dir.chdir(root) do
           File.write(File.join(root, "fake_gem.gemspec"), fake_spec)
           File.write(File.join(root, "README.org"), readme)
+          File.write(File.join(root, "CHANGELOG.org"), changelog)
           lib_dir = File.join(root, "lib/")
           FileUtils.mkdir_p(lib_dir)
           File.write(File.join(lib_dir, "fake_gem.rb"), lib)
@@ -146,11 +168,11 @@ module GemDocs
       end
     end
 
-    describe ".export" do
+    describe ".export_readme" do
       context "when the org file is saved" do
         it "produces the README.md" do
           expect(File).not_to exist("README.md")
-          Emacs.export
+          Emacs.export_readme
           expect(File).to exist("README.md")
         end
       end
@@ -163,10 +185,35 @@ module GemDocs
           mod_stat = File.stat("README.org")
           expect(mod_stat.mtime > pre_stat.mtime).to be_truthy
           expect(File).not_to exist("README.md")
-          Emacs.export
+          Emacs.export_readme
           post_stat = File.stat("README.org")
           expect(post_stat.mtime >= mod_stat.mtime).to be_truthy
           expect(File).to exist("README.md")
+        end
+      end
+    end
+
+    describe ".export_changelog" do
+      context "when the org file is saved" do
+        it "produces the CHANGELOG.md" do
+          expect(File).not_to exist("CHANGELOG.md")
+          Emacs.export_changelog
+          expect(File).to exist("CHANGELOG.md")
+        end
+      end
+
+      context "when the org file is not saved" do
+        it "saves and produces the CHANGELOG.md" do
+          # Add to the end of the CHANGELOG.org file
+          pre_stat = File.stat("CHANGELOG.org")
+          File.write("CHANGELOG.org", "* [#{Date.today.iso8601}] Version X.X.y")
+          mod_stat = File.stat("CHANGELOG.org")
+          expect(mod_stat.mtime > pre_stat.mtime).to be_truthy
+          expect(File).not_to exist("CHANGELOG.md")
+          Emacs.export_changelog
+          post_stat = File.stat("CHANGELOG.org")
+          expect(post_stat.mtime >= mod_stat.mtime).to be_truthy
+          expect(File).to exist("CHANGELOG.md")
         end
       end
     end

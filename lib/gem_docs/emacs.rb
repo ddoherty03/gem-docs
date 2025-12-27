@@ -20,13 +20,31 @@ module GemDocs
       end
     end
 
-    def self.export
+    def self.export_readme
       expr = <<~ELISP
         (save-window-excursion
           (with-current-buffer (find-file-noselect "#{README_ORG}")
             (save-buffer)
             (require 'ox-gfm)
-            (org-gfm-export-to-markdown)))
+            (org-gfm-export-to-markdown))
+          (with-current-buffer (find-file-noselect "#{CHANGELOG_ORG}")
+            (save-buffer)
+            (require 'ox-gfm)
+            (org-gfm-export-to-markdown))
+           "Export README complete")
+      ELISP
+
+      system("emacsclient", "--quiet", "--eval", expr)
+    end
+
+    def self.export_changelog
+      expr = <<~ELISP
+        (save-window-excursion
+          (with-current-buffer (find-file-noselect "#{CHANGELOG_ORG}")
+            (save-buffer)
+            (require 'ox-gfm)
+            (org-gfm-export-to-markdown))
+           "Export CHANGELOG complete")
       ELISP
 
       system("emacsclient", "--quiet", "--eval", expr)

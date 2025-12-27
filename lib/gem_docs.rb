@@ -275,6 +275,8 @@ module GemDocs
 
   README_ORG = "README.org"
   README_MD = "README.md"
+  CHANGELOG_ORG = "CHANGELOG.org"
+  CHANGELOG_MD = "CHANGELOG.md"
 
   # Auto-detect project root (handles being run from subdirs)
   def self.project_root

@@ -4,21 +4,25 @@ module GemDocs
   def self.install
     extend Rake::DSL
 
-    # README.org → README.md when README.org is newer
     file README_MD => README_ORG do
       print "Exporting \"#{README_ORG}\" → "
-      GemDocs::Emacs.export
+      GemDocs::Emacs.export_readme
+    end
+
+    file CHANGELOG_MD => CHANGELOG_ORG do
+      print "Exporting \"#{CHANGELOG_ORG}\" → "
+      GemDocs::Emacs.export_changelog
     end
 
     namespace :docs do
       desc "Evaluate code blocks in README.org"
-      task :tangle => [:skeleton] do
+      task :tangle => ["skeleton:readme"] do
         print "Executing code blocks in #{README_ORG} ... "
         GemDocs::Emacs.tangle
       end
 
       desc "Export README.org → README.md"
-      task :export => [:badge, README_MD]
+      task :export => [:badge, README_MD, CHANGELOG_MD]
 
       desc "Extract overview from README.org and embed in lib/<gem>.rb for ri/yard"
       task :overview => [:skeleton, README_ORG] do
@@ -30,17 +34,28 @@ module GemDocs
         end
       end
 
-      desc "Create skeleton README.org if one does not exist"
-      task :skeleton do
-        if GemDocs::Skeleton.make_readme?
-          puts "README.org added"
-        else
-          puts "README.org already present"
+      namespace :skeleton do
+        desc "Create skeleton README.org if one does not exist"
+        task :readme do
+          if GemDocs::Skeleton.make_readme?
+            puts "README.org added"
+          else
+            puts "README.org already present"
+          end
+        end
+
+        desc "Create skeleton CHANGELOG.org if one does not exist"
+        task :changelog do
+          if GemDocs::Skeleton.make_changelog?
+            puts "CHANGELOG.org added"
+          else
+            puts "CHANGELOG.org already present"
+          end
         end
       end
 
       desc "Insert #+PROPERTY headers at top of README.org for code blocks"
-      task :header => :skeleton do
+      task :header => "skeleton:readme" do
         print "Inserting headers ... "
         if GemDocs::Header.write_header?
           puts "added"
@@ -56,7 +71,7 @@ module GemDocs
       end
 
       desc "Ensure GitHub Actions badge exists in README.org"
-      task :badge => :skeleton do
+      task :badge => "skeleton:readme" do
         print "Ensuring badges are in README.org ... "
         if GemDocs::Badge.ensure!
           puts "added"
@@ -66,7 +81,7 @@ module GemDocs
       end
 
       desc "Run all documentation tasks (examples, readme, overview, yard, ri)"
-      task :all => [:skeleton, :header, :tangle, :export, :overview, :yard]
+      task :all => ["skeleton:readme", "skeleton:changelog", :header, :tangle, :export, :overview, :yard]
     end
   end
 end
