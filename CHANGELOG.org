@@ -1,0 +1,23 @@
+* COMMENT CHANGELOG tips:
+1. Don't dump your git change logs into this file, write them yourself.
+2. Keep entries short and user-focused,
+3. Use non-technical language, but do speak in the vocabulary of your gem.
+4. Don't document changes only of interest to the programmers, just those the
+   user would find useful.
+5. Give each heading an inactove date (C-c ! is useful here) and a version
+   number.
+
+* Version 0.3.0 [2025-12-27 Sat]
+- Added export of CHANGELOG.org to CHANGELOG.md
+- Added this CHANGELOG so I have an example to use in my specs.  Oh, and for
+  users also.
+* Version 0.2.0 [2025-12-23 Tue]
+- Make tangle of README.org unconditional, even is it is not newer than
+  README.md.  The code examples depend on more than just the text of
+  README.org, they especially depend on changes to the gem's lib code, so
+  running unconditionally is usually what is wanted.
+- Before docs:tangle, kill the session buffer for ruby code blocks so each run
+  is independent of prior runs and the current version of the gem lib gets
+  loaded.
+* Version 0.1.2 [2025-12-23 Fri]
+- Initial release
