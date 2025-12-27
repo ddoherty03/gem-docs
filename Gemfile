@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+ruby '>= 3.2.9', '<= 4.0.0'
+
 source "https://rubygems.org"
 
 # Specify your gem's dependencies in gem_docs.gemspec
