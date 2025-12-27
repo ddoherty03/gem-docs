@@ -154,7 +154,7 @@ module GemDocs
 
         gemspec
         gem "irb"
-        GEM
+      GEM
     end
 
     around do |example|
